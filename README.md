@@ -2,7 +2,11 @@
 
 A comprehensive collection of Lambda functions for strengthening AWS account security through automated detection, notification, and remediation.
 
-![AWS Security Banner](https://img.shields.io/badge/AWS-Security%20Controls-orange) ![NodeJS](https://img.shields.io/badge/Node.js-20.x-green)
+<p align="center">
+  <img src="https://img.shields.io/badge/AWS-Security%20Controls-orange" alt="AWS Security Banner" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License" />
+  <img src="https://img.shields.io/badge/Node.js-20.x-green" alt="NodeJS" />
+</p>
 
 ## Overview
 
