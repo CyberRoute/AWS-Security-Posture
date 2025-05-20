@@ -1,0 +1,42 @@
+{
+    "version": "0",
+    "id": "c2d6c441-b90c-4ec5-b59a-1cd8e9d0194c",
+    "detail-type": "AWS API Call via CloudTrail",
+    "source": "aws.iam",
+    "account": "123456789012",
+    "time": "2025-03-25T12:00:00Z",
+    "region": "us-east-1",
+    "resources": [],
+    "detail": {
+      "eventVersion": "1.08",
+      "userIdentity": {
+        "type": "Root",
+        "principalId": "ABCDEFGHIJKL",
+        "arn": "arn:aws:iam::123456789012:root",
+        "accountId": "123456789012",
+        "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+        "sessionContext": {
+          "attributes": {
+            "mfaAuthenticated": "false",
+            "creationDate": "2025-03-25T12:00:00Z"
+          }
+        }
+      },
+      "eventTime": "2025-03-25T12:00:00Z",
+      "eventSource": "iam.amazonaws.com",
+      "eventName": "CreateUser",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "192.0.2.0",
+      "userAgent": "aws-cli/1.16.300 Python/3.7.3 Darwin/19.4.0 botocore/1.13.16",
+      "requestParameters": null,
+      "responseElements": null,
+      "requestID": "c235bdc9-77a0-4d06-bbc2-2a8b5b54a2c2",
+      "eventID": "e8e8e8e8-1234-5678-9101-abcdefabcdef",
+      "readOnly": false,
+      "resources": [],
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "123456789012"
+    }
+  }
+  

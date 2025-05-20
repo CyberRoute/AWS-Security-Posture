@@ -1,0 +1,37 @@
+service: lambda-sec-group-change
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-west-1
+  iam:
+    role:
+      name: lambdaSecGroupRole
+  environment:
+    # List of preexisting security group names to monitor: DatabaseSecurityGroup, PlaySecurityGroup, vault-tma1-prd-sg, PaySecurityGroup, ApplicationSecurityGroup.
+    MONITORED_SECURITY_GROUPS: ${param:securityGroups, ""}
+    SNS_TOPIC_ARN: arn:aws:sns:${self:provider.region}:${aws:accountId}:SecurityNotificationTopic
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ec2:RevokeSecurityGroupIngress"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+      Resource: arn:aws:sns:${self:provider.region}:${aws:accountId}:SecurityNotificationTopic
+
+functions:
+  securityGroupChangeAutoResponse:
+    handler: dist/handler.handler
+    description: "Responds to security group change events on monitored groups."
+    events:
+      - eventBridge:
+          pattern:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "AWS API Call via CloudTrail"
+            detail:
+              eventName:
+                - AuthorizeSecurityGroupIngress

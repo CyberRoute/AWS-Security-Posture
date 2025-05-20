@@ -1,0 +1,73 @@
+service: lambda-credentials-exposed
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1            # must be us-east-1 to see aws.health events
+  runtime: nodejs20.x
+  environment:
+    TOPIC_ARN: arn:aws:sns:${self:provider.region}:${aws:accountId}:credentials-exposed
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - iam:GetAccessKeyLastUsed
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource: ${self:provider.environment.TOPIC_ARN}
+
+plugins:
+  - serverless-step-functions
+
+functions:
+  reportAccessKeys:
+    handler: lambda_functions/report_access_keys.lambdaHandler
+
+  notifySecurity:
+    handler: lambda_functions/notify_security.lambdaHandler
+
+stepFunctions:
+  stateMachines:
+    exposedKeyStateMachine:
+      name: exposedKeyStateMachine-${self:provider.stage}
+      events:
+        - cloudwatchEvent:
+            event:
+              source:
+                - aws.health
+              detail-type:
+                - AWS Health Event
+              detail:
+                service:
+                  - RISK
+                eventTypeCategory:
+                  - issue
+                eventTypeCode:
+                  - AWS_RISK_CREDENTIALS_COMPROMISED
+                  - AWS_RISK_CREDENTIALS_COMPROMISE_SUSPECTED
+                  - AWS_RISK_CREDENTIALS_EXPOSED
+                  - AWS_RISK_CREDENTIALS_EXPOSURE_SUSPECTED
+                  - AWS_RISK_IAM_QUARANTINE
+      definition:
+        Comment: "Report exposed IAM keys and notify security"
+        StartAt: ReportAccessKeys
+        States:
+          ReportAccessKeys:
+            Type: Task
+            Resource: !GetAtt ReportAccessKeysLambdaFunction.Arn
+            Next: NotifySecurity
+          NotifySecurity:
+            Type: Task
+            Resource: !GetAtt NotifySecurityLambdaFunction.Arn
+            End: true

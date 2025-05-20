@@ -1,0 +1,27 @@
+{
+  "name": "lambda-credentials-exposed",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-iam": "^3.777.0",
+    "@aws-sdk/client-sns": "^3.777.0",
+    "serverless": "v3.40"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "serverless-step-functions": "^3.22.0",
+    "typescript": "^5.8.2"
+  },
+  "overrides": {
+    "serverless-step-functions": {
+      "serverless": "$serverless"
+    }
+  }
+}

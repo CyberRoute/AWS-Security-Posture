@@ -1,0 +1,16 @@
+{
+  "name": "lambda-report-security-group",
+  "version": "1.0.0",
+  "description": "report unused security groups",
+  "main": "handler.mjs",
+  "scripts": {
+    "test": "\"echo \\\"Error: no test specified\\\" && exit 1\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.699.0",
+    "@aws-sdk/client-ec2": "^3.699.0",
+    "@aws-sdk/client-lambda": "^3.699.0"
+  }
+}

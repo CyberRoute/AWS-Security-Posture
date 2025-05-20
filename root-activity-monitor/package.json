@@ -1,0 +1,30 @@
+{
+  "name": "root-activity-monitor",
+  "version": "1.0.0",
+  "description": "Lambda function to monitor AWS root account API activity",
+  "main": "dist/RootActivityLambda.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "zip": "rm -f function.zip && zip -r function.zip dist node_modules"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.357.0",
+    "@aws-sdk/client-iam": "^3.357.0",
+    "@aws-sdk/client-sns": "^3.357.0",
+    "@aws-sdk/client-sts": "^3.357.0",
+    "aws-sdk": "^2.1692.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/jest": "^29.5.3",
+    "@types/node": "^20.4.1",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.44.0",
+    "jest": "^29.6.1",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.1.6"
+  }
+}

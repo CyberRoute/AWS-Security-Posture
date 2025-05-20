@@ -1,0 +1,172 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description": "This sample, non-production-ready AWS CloudFormation template creates an Amazon SNS Topic, Amazon CloudWatch Event Rule and an AWS Lambda function to monitor API activity by AWS account root user and send an email notification to the SNS subscribers about the activity. (c) 2016 Amazon Web Services, Inc. or its affiliates. All Rights Reserved. This AWS Content is provided subject to the terms of the AWS Customer Agreement available at http://aws.amazon.com/agreement or other written agreement between Customer and Amazon Web Services, Inc.",
+  "Metadata" : {
+      "AWS::CloudFormation::Interface" : {
+         "ParameterGroups" : [
+            {
+               "Label" : {
+                  "default" : "Amazon SNS parameters"
+               },
+               "Parameters" : [ "SNSSubscriptions", "SNSTopicName"]
+            },
+            {
+               "Label" : {
+                  "default" : "AWS Lambda parameters"
+               },
+               "Parameters" : [ "LambdaTimeout", "LambdaS3Bucket", "LambdaS3Key"]
+            }
+         ]
+      }
+   },
+  "Parameters": {
+    "SNSSubscriptions": {
+      "Type": "String",
+      "Description": "Enter an email address you want to subscribe to the Amazon SNS topic that will send notifications on AWS root user API activity."
+    },
+    "SNSTopicName": {
+      "Description": "Name the SNS topic",
+      "Type": "String"
+    },
+    "LambdaTimeout" : {
+         "Type" : "Number",
+         "Default" : "60",
+         "Description" : "Enter a timeout value in seconds for the lambda function. Min is 3, max is 300 and default is 60."
+    },
+    "LambdaS3Bucket": {
+  	"Description": "Name of the S3 bucket where the lambda function is stored",
+      	"Type": "String"
+    },
+    "LambdaS3Key": {
+  	"Description": "Name of the S3 key of the Lambda function (include the prefix as well)",
+      	"Type": "String"
+    }
+  },		
+  "Resources": {
+    "RootActivitySNSTopic" :{
+  		"Type" : "AWS::SNS::Topic",
+  		"Properties" : {
+    		"DisplayName" : "Root-ALERT",
+    		"Subscription" : [{"Endpoint" : {"Ref":"SNSSubscriptions"},
+  								"Protocol" : "email-json"
+  								}],
+    		"TopicName" : {"Ref":"SNSTopicName"}
+  }
+},
+	"EventsRule":{
+  		"Type" : "AWS::Events::Rule",
+  		"Properties" : {
+    		"Description" : "Events rule for monitoring root API activity",
+    		"EventPattern" : {
+  							 "detail-type": ["AWS API Call via CloudTrail","AWS Console Sign In via CloudTrail"],
+  							 "detail": {
+  							 	"userIdentity": {
+      								"type": ["Root"]
+      							}
+  							 }
+            },
+    		"Name" : {"Fn::Sub": "${AWS::StackName}-RootActivityRule" },
+    		"State" : "ENABLED",
+    		"Targets" : [{
+    						"Arn":{ "Fn::GetAtt" : [ "RootActivityLambda", "Arn" ] },
+    						"Id" :{"Ref":"AWS::StackName"}
+    					}]
+  		 }
+	},
+	"RootActivityLambda": {
+    	"Type": "AWS::Lambda::Function",
+    	"Properties": {
+    		"Code" : {
+      			"S3Bucket" : {"Ref":"LambdaS3Bucket"},
+      			"S3Key" : {"Ref": "LambdaS3Key"}
+      		},
+        	"Handler": "dist/RootActivityLambda.handler",
+        	"Role": {"Fn::GetAtt" : ["LambdaRootAPIMonitorRole", "Arn"] },
+        	"Runtime": "nodejs20.x",
+			"Timeout": {"Ref":"LambdaTimeout"},
+			"Environment": {
+  				"Variables" : { "SNSARN":{"Ref":"RootActivitySNSTopic"}}
+			}
+    	}
+    },
+    "LambdaRootAPIMonitorRole" : {
+         "Type" : "AWS::IAM::Role",
+         "Properties" : {
+            "AssumeRolePolicyDocument" : {
+               "Version" : "2012-10-17",
+               "Statement" : [
+                  {
+                     "Effect" : "Allow",
+                     "Principal" : {
+                        "Service": [ "lambda.amazonaws.com" ]
+                     },
+                     "Action" : "sts:AssumeRole"
+                  }
+               ]
+            }
+         }
+      },
+    "LambdaRootAPIMonitorPolicy" : {
+         "Type" : "AWS::IAM::Policy",
+         "DependsOn" : "LambdaRootAPIMonitorRole",
+         "Properties" : {
+            "PolicyDocument" : {
+    			"Version": "2012-10-17",
+    			"Statement": [
+        			{
+            			"Sid": "LogStreamAccess",
+            			"Effect": "Allow",
+            			"Action": [
+                			"logs:CreateLogGroup",
+                			"logs:CreateLogStream",
+                			"logs:PutLogEvents"
+            			],
+            			"Resource": ["arn:aws:logs:*:*:*"]
+        			},
+        			{
+            			"Sid": "SNSPublishAllow",
+            			"Effect": "Allow",
+            			"Action": ["sns:Publish"],
+            			"Resource": ["arn:aws:sns:*:*:*"]
+        			},
+        			{
+      					"Sid": "ListAccountAlias",
+      					"Action": ["iam:ListAccountAliases"],
+      					"Effect": "Allow",
+      					"Resource": "*"
+    				}
+    			]
+			},
+            "PolicyName" : {"Fn::Sub": "${AWS::StackName}-LambdaRootAPIMonitorPolicy" },
+            "Roles" : [{"Ref" : "LambdaRootAPIMonitorRole"}]
+         }
+      },
+    "LambdaPermission":{
+  		"Type" : "AWS::Lambda::Permission",
+  		"Properties" : {
+    		"Action" : "lambda:InvokeFunction",
+    		"FunctionName" : {"Ref":"RootActivityLambda"},
+    		"Principal" : "events.amazonaws.com",
+    		"SourceArn" : { "Fn::GetAtt" :[ "EventsRule","Arn" ] }
+  		}
+	}
+	
+  },
+  "Outputs": {
+  	"EventsRule": {
+      "Value": {"Ref": "EventsRule"},
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-RootAPIMonitorEventsRule" }},
+      "Description": "Event Rule ID."
+    },
+    "LambdaFuncName": {
+      "Value": {"Ref": "RootActivityLambda"},
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-RootAPIMonitorLambda" }},
+      "Description": "Lambda function logical ID."
+    },
+    "SNSTopicName": {
+      "Value": {"Ref":"SNSTopicName"},
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-RootAPIMonitorSNSTopic" }},
+      "Description": "SNS Topic Name."
+    }
+  }
+}
