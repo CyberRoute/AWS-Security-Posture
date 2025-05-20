@@ -19,8 +19,8 @@ This repository contains a suite of AWS Lambda-based security controls designed 
 
 ## Security Controls Included
 
-| Control | Description | Deployment |
-|---------|-------------|------------|
+| Control | Description |
+|---------|-------------|
 | **VPC Security Group Auto-Response** | Automatically revokes unauthorized ingress rules from monitored security groups
 | **Root Account Activity Monitor** | Monitors and alerts on any activity performed by the AWS account root user
 | **Unused Security Group Reporter** | Identifies and reports security groups that are not attached to any resources
