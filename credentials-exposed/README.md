@@ -31,7 +31,7 @@ This serverless application monitors and responds to AWS Health events for expos
    
 ## Architecture
 
-This application consists of three Lambda functions:
+This application consists of two Lambda functions:
 
 - `report_access_keys.ts`: Identifies and reports exposed access key pair
 - `notify_security.ts`: Sends notifications to security teams via SNS
