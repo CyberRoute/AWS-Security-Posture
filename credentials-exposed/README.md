@@ -25,7 +25,7 @@ This serverless application monitors and responds to AWS Health events for expos
    This compiles the TypeScript files from the `lambda_functions` directory to the `dist` directory.
 
 4. Deploy
-   
+   ```
    sls deploy
    ```
    
